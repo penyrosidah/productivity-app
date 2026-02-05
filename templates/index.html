@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <!-- METADATA DOKUMEN                                      -->
+    <meta charset="UTF-8" />
+    <title>Sistem Analisis Produktivitas Pegawai</title>
+
+    <!-- BOOTSTRAP CSS                                         -->
+    <!-- Digunakan untuk layout, grid, tombol, dan tabel       -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+
+    <!-- DATATABLES CSS                                        -->
+    <!-- Digunakan untuk fitur paging, search, dan sorting     -->
+    <!-- pada tabel data pegawai                               -->
+    <link
+      rel="stylesheet"
+      href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap5.min.css"
+    />
+
+    <!-- JQUERY & DATATABLES JS                                 -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.4/js/dataTables.bootstrap5.min.js"></script>
+
+    <!-- SCRIPT INISIALISASI DATATABLES                         -->
+    <!-- Tabel hanya diinisialisasi jika elemen                 -->
+    <!-- dengan id "pegawaiTable" tersedia                     -->
+    <script>
+      $(document).ready(function () {
+        // Mengecek keberadaan tabel pegawai
+        if (document.getElementById("pegawaiTable")) {
+          try {
+            $("#pegawaiTable").DataTable({
+              paging: true,       // Navigasi halaman
+              searching: true,    // Fitur pencarian
+              ordering: true,     // Sorting kolom
+              pageLength: 10,     // Jumlah baris per halaman
+              lengthChange: true, // Opsi ubah jumlah baris
+              language: {
+                paginate: {
+                  previous: "Sebelumnya",
+                  next: "Berikutnya",
+                },
+                search: "Cari:",
+                lengthMenu: "Tampilkan _MENU_",
+              },
+            });
+          } catch (err) {
+            // Menangani error jika DataTables gagal diinisialisasi
+            console.warn("DataTables init failed:", err);
+          }
+        }
+      });
+    </script>
+
+    <!-- STYLE CSS KUSTOM -->
+    <!-- Menggunakan konsep glassmorphism & responsif -->
+    <style>
+      /* Gaya dasar halaman */
+      body {
+        background: #f0f3f7;
+        font-family: "Poppins", sans-serif;
+        padding: 40px;
+      }
+
+      /* Kartu utama dengan efek glass */
+      .glass-card {
+        background: rgba(255, 255, 255, 0.75);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        padding: 28px;
+        border-radius: 14px;
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.5);
+      }
+
+      /* Judul utama */
+      h2 {
+        font-weight: 700;
+        letter-spacing: 1px;
+        color: #2d3436;
+      }
+
+      /* Judul setiap section */
+      .section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-top: 24px;
+        color: #2d3436;
+        border-bottom: 2px solid #74b9ff;
+        display: inline-block;
+        padding-bottom: 6px;
+      }
+
+      /* Header tabel */
+      table th {
+        background: #ffffff !important;
+        color: white;
+        text-align: center;
+      }
+
+      /* Isi tabel */
+      table td {
+        text-align: center;
+      }
+
+      /* Tombol dengan efek hover lembut */
+      .btn-soft {
+        border-radius: 10px;
+        padding: 10px 18px;
+        transition: 0.2s;
+      }
+
+      .btn-soft:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.12);
+      }
+
+      /* Area upload file */
+      .upload-box {
+        border: 2px dashed rgba(116, 185, 255, 0.6);
+        padding: 22px;
+        border-radius: 12px;
+        text-align: center;
+        background: rgba(255, 255, 255, 0.7);
+      }
+
+      /* Tampilan responsif untuk layar kecil */
+      @media (max-width: 576px) {
+        body {
+          padding: 18px;
+        }
+        .glass-card {
+          padding: 18px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- KONTAINER UTAMA -->
+    <div class="container">
+      <div class="glass-card">
+        <h2 class="text-center mb-3">
+          Sistem Analisis Produktivitas Pegawai
+        </h2>
+        <!-- FORM UPLOAD DATA CSV-->
+        <div class="upload-box mb-4">
+          <form action="/upload" method="POST" enctype="multipart/form-data">
+            <label class="form-label fw-semibold">
+              Upload Data Pegawai
+            </label>
+            <input
+              type="file"
+              name="file"
+              class="form-control mt-2"
+              required
+            />
+            <button
+              class="btn btn-primary btn-soft mt-3"
+              type="submit"
+            >
+              📤 Upload Data
+            </button>
+          </form>
+        </div>
+
+        <!-- TABEL DATA PEGAWAI                                 -->
+        <!-- Tabel dihasilkan dari pandas (.to_html)           -->
+        <!-- ID disisipkan agar hanya tabel ini memakai         -->
+        <!-- DataTables                                        -->
+        {% if table %}
+        <h4 class="section-title">📋 Data Pegawai</h4>
+
+        <div class="table-responsive">
+          {{ table
+            |replace('<table', '<table id="pegawaiTable"')
+            |safe }}
+        </div>
+
+        <!-- Tombol aksi pelatihan dan clustering -->
+        <div class="d-flex gap-2 mt-3">
+          <form action="/latih" method="POST">
+            <button class="btn btn-success btn-soft" type="submit">
+              Latih Model
+            </button>
+          </form>
+
+          <form action="/cluster" method="POST">
+            <button class="btn btn-warning btn-soft" type="submit">
+              Clustering
+            </button>
+          </form>
+        </div>
+        {% endif %}
+        <!-- TABEL HASIL EVALUASI MODEL-->
+        {% if results %}
+        <h4 class="section-title">Hasil Evaluasi Model</h4>
+
+        <div class="table-responsive">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>No</th>
+                <th>Model</th>
+                <th>Akurasi</th>
+                <th>Presisi</th>
+                <th>Recall</th>
+                <th>F1 Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for model, metrics in results.items() %}
+              <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ model }}</td>
+                <td>{{ metrics.accuracy }}</td>
+                <td>{{ metrics.precision }}</td>
+                <td>{{ metrics.recall }}</td>
+                <td>{{ metrics.f1 }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
+        <!-- TABEL FEATURE IMPORTANCE -->
+        {% if importance %}
+        <h4 class="section-title">Feature Importance</h4>
+        <div class="table-responsive">
+          {{ importance|safe }}
+        </div>
+        {% endif %}
+        <!-- TABEL HASIL CLUSTERING-->
+        {% if clusters %}
+        <h4 class="section-title">Hasil Clustering</h4>
+        <div class="table-responsive">
+          {{ clusters|safe }}
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>
